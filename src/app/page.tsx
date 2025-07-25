@@ -3,6 +3,7 @@ import Link from "next/link";
 import { UploadButton } from "~/utils/uploadthing";
 import { UploadDialog } from "./_components/upload-dialog";
 import { getMyImages } from "~/server/queries";
+import { ImageModal } from "./_components/image-modal";
 
 export const dynamic = "force-dynamic"; // This page is dynamic and should not be cached
 
@@ -29,14 +30,18 @@ async function Images() {
       <div className="flex flex-wrap justify-center gap-6 p-4">
         {images.map((image) => (
           <div key={image.id} className="flex w-64 flex-col">
-            <div className="relative aspect-video bg-zinc-900">
-              <img
-                src={image.imageUrl}
-                alt={`Image ${image.id}`}
-                className="h-full w-full object-contain object-top"
-              />
+            <ImageModal image={image}>
+              <div className="relative aspect-video bg-zinc-900">
+                <img
+                  src={image.imageUrl}
+                  alt={`Image ${image.id}`}
+                  className="h-full w-full object-contain object-top"
+                />
+              </div>
+            </ImageModal>
+            <div className="text-center">
+              {image.imageName || image.fileName}
             </div>
-            <div className="text-center">{image.id}</div>
           </div>
         ))}
       </div>
