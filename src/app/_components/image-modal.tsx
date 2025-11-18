@@ -13,6 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import { DeleteButton } from "./delete-button";
+import { UploadDialog } from "./upload-dialog";
 
 interface ImageModalProps {
   image: {
@@ -64,14 +66,14 @@ export function ImageModal({ image, children }: ImageModalProps) {
         {children}
       </div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="min-h-[90vh] min-w-[90vw] overflow-hidden p-0">
+        <DialogContent className="max-h-[90vh] min-w-[90vw] overflow-hidden p-0">
           <div className="flex h-full flex-col md:flex-row">
             {/* Image Container */}
-            <div className="flex flex-1 items-center justify-center bg-black p-4">
+            <div className="flex max-h-[100vh] flex-1 items-center justify-center bg-black p-4">
               <img
                 src={image.imageUrl}
                 alt={String(image.id)}
-                className="max-h-full max-w-full object-contain"
+                className="h-full w-full object-contain"
               />
             </div>
             {/* Details Container */}
@@ -98,9 +100,9 @@ export function ImageModal({ image, children }: ImageModalProps) {
                   </span>
                   <span>{new Date(image.createdAt).toLocaleDateString()}</span>
                 </div>
-
-                <div className="">
-                  <Button>Delete</Button>
+                <div className="flex flex-row gap-4">
+                  <DeleteButton idAsNumber={image.id} />
+                  <UploadDialog idAsNumber={image.id} />
                 </div>
               </div>
             </div>

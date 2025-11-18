@@ -2,7 +2,7 @@
 
 import { Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { set } from "zod";
 import { Button } from "~/components/ui/button";
@@ -32,6 +32,8 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { getImage } from "~/server/queries";
+import { id } from "zod/v4/locales";
 
 const formSchema = z.object({
   imageName: z
@@ -40,8 +42,14 @@ const formSchema = z.object({
     .max(50),
 });
 
-export function UploadDialog() {
+export function UploadDialog({ idAsNumber }: { idAsNumber: number | null }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(
+    null,
+  );
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,12 +58,29 @@ export function UploadDialog() {
     },
   });
 
-  const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [selectedImageName, setSelectedImageName] = useState<string | null>(
-    null,
-  );
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  useEffect(() => {
+    async function fetchImage() {
+      if (idAsNumber !== null) {
+        const [image] = await getImage(idAsNumber);
+        setSelectedImageUrl(image?.imageUrl || null);
+        setSelectedImageName(image?.imageName || null);
+      }
+    }
+    fetchImage();
+  }, [open, selectedImageUrl, selectedImageName]);
+
+  useEffect(() => {
+    if (idAsNumber !== null && selectedImageName) {
+      form.reset({
+        imageName: selectedImageName,
+      });
+    } else if (idAsNumber === null) {
+      // Reset to empty for new uploads
+      form.reset({
+        imageName: "",
+      });
+    }
+  }, [idAsNumber, selectedImageName, form]);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -101,6 +126,7 @@ export function UploadDialog() {
     }
     const selectedImage = Array.from(inputRef.current.files);
     await startUpload(selectedImage, {
+      imageId: idAsNumber ? idAsNumber.toString() : "",
       imageName: form.getValues("imageName"),
     });
     setSelectedImageName(null);
@@ -131,7 +157,12 @@ export function UploadDialog() {
     // />
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Upload Image</Button>
+        {idAsNumber === null ? (
+          <Button variant="outline">Upload Image</Button>
+        ) : (
+          <Button variant="default">Upload Image</Button>
+        )}
+        {/* <Button variant="outline">Upload Image</Button> */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -140,13 +171,13 @@ export function UploadDialog() {
             Select an image to upload. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           {selectedImageUrl !== null && (
-            <div>
+            <div className="max-h-[60vh]">
               <img
                 src={selectedImageUrl}
                 alt={selectedImageName || "Selected Image"}
-                className="w-full rounded-md object-cover"
+                className="max-h-full w-full rounded-md object-contain"
               />
             </div>
           )}
@@ -177,10 +208,29 @@ export function UploadDialog() {
               name="imageName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image Name</FormLabel>
+                  {/* <FormLabel>Image Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Image Name" {...field} />
-                  </FormControl>
+                  </FormControl> */}
+                  {idAsNumber === null ? (
+                    <div>
+                      <div className="pb-4">
+                        <FormLabel>Image Name</FormLabel>
+                      </div>
+                      <FormControl>
+                        <Input placeholder="Image Name" {...field} />
+                      </FormControl>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="pb-4">
+                        <FormLabel>Updated Image Name</FormLabel>
+                      </div>
+                      <FormControl>
+                        <Input placeholder="Updated Image Name" {...field} />
+                      </FormControl>
+                    </div>
+                  )}
                   {/* <FormDescription>
                     This is your public display name.
                   </FormDescription> */}

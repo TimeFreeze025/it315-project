@@ -17,11 +17,14 @@ export async function GET(
     const client = await clerkClient();
     const uploaderInfo = await client.users.getUser(userId);
 
-    return NextResponse.json({
-      fullName: uploaderInfo.fullName,
-      username: uploaderInfo.username,
-      emailAddress: uploaderInfo.emailAddresses[0]?.emailAddress || "",
-    });
+    return NextResponse.json(
+      {
+        fullName: uploaderInfo.fullName,
+        username: uploaderInfo.username,
+        emailAddress: uploaderInfo.emailAddresses[0]?.emailAddress || "",
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error fetching user info:", error);
     return NextResponse.json(

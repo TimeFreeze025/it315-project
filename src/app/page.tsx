@@ -25,7 +25,7 @@ async function Images() {
   return (
     <div>
       <div className="flex justify-end p-4">
-        <UploadDialog />
+        <UploadDialog idAsNumber={null} />
       </div>
       <div className="flex flex-wrap justify-center gap-6 p-4">
         {images.map((image) => (
